@@ -1,0 +1,17 @@
+.x-btn {
+  border: none;
+  background-image: none;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.x-btn-default-small .x-btn-inner {
+  color: #fff;
+}
+.x-btn-primary:hover {
+  background-color: #ff3333;
+}
+.x-btn-success:hover {
+  background-color: #00b300;
+}

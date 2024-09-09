@@ -1,0 +1,51 @@
+// 清除所有树形节点背景图
+.x-grid-tree-node-expanded .x-tree-icon-parent,
+.x-tree-icon-leaf,
+.x-tree-icon-parent {
+    background-image: none;
+}
+
+// 树状横向排列
+.x-grid-cell-inner-treecolumn .x-tree-expander, .x-tree-icon {
+    display:inline-block;
+}
+
+
+// 鼠标移入
+.x-grid-row-over .x-grid-td{
+    background-color:#ebf2f9;
+}
+// 当前选中
+.x-grid-row-selected .x-grid-td{
+    background-color: #FDFBCF;
+    border-bottom:none;
+}
+
+// 树形图标
+.x-tree-icon {
+    font-family: "iconfont" !important;
+    text-align: center !important;
+    line-height: 20px !important;
+    font: normal normal normal 16px / 1 iconfont;
+    display: inline-block;
+    color:#444;
+}
+
+// 树形文字
+.x-tree-node-text {
+    font-family: tahoma, 微软雅黑;
+    cursor: pointer;
+    font-size:12px;
+}
+
+// 父级图标收起
+.x-tree-icon[class$="x-tree-icon-parent "]::before{
+    color:#ECC01C;
+    content: "\e85e";
+}
+// 父级图标展开
+.x-grid-tree-node-expanded .x-tree-icon[class$="x-tree-icon-parent "]:before{
+    content: "\e85f";
+}
+
+

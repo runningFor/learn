@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="file" id="file" />
+    <script>
+        // 浏览器需要统计元数据，所以文件越大change响应越慢
+        document.querySelector("#file").addEventListener("change", function (e) {
+            console.log(e)
+        })
+    </script>
+
+</body>
+
+</html>

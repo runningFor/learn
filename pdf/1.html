@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <style>
+        .pdfobject-container {
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+    </style>
+    <div id="my-pdf"></div>
+    <script src="https://unpkg.com/pdfobject"></script>
+    <script>PDFObject.embed("http://192.168.50.99:8888/static/3.ES6%E9%9D%A2%E8%AF%95%E7%9C%9F%E9%A2%98-84%E9%A1%B5.pdf", "#my-pdf");</script>
+</body>
+
+</html>

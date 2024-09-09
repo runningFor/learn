@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./ext-theme-classic-all.css" />
+    <link rel="stylesheet/less" type="text/css" href="style/index.less" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
+</head>
+
+<body>
+    <img class="x-tree-icon  jeicon-master-table" src="" alt="">
+    <span class="iconfont icon-folder-fill"></span>
+    <script type="text/javascript" src="./ext-all-debug-w-comments.js"></script>
+    <script>
+        console.log(Ext)
+        Ext.onReady(function () {
+            Ext.override(Ext.tree.Column, {
+                cellTpl: ['<tpl for="lines">',
+                    '<img src="{parent.blankUrl}" class="{parent.childCls} {parent.elbowCls}-img ',
+                    '{parent.elbowCls}-<tpl if=".">line<tpl else>empty</tpl>"/>', "</tpl>",
+                    '<tpl if="!hideElbow">', '<tpl if="expandable">',
+                    '<div src="{blankUrl}" class="{childCls} {elbowCls}-img {elbowCls}',
+                    '<tpl if="isLast">-end</tpl><tpl if="expandable">-plus {expanderCls}</tpl>"></div>',
+                    "<tpl else>", '<img src="{blankUrl}" class="{childCls} {elbowCls}-img {elbowCls}',
+                    '<tpl if="isLast">-end</tpl><tpl if="expandable">-plus {expanderCls}</tpl>"/>', "</tpl>",
+                    "</tpl>", '<tpl if="checked !== null">',
+                    '<div type="button" role="checkbox" <tpl if="checked">aria-checked="true" </tpl>',
+                    'class="{childCls} {checkboxCls}<tpl if="checked"> {checkboxCls}-checked</tpl>"></div>',
+                    "</tpl>", '<tpl if="!hideIcon">', '<div src="{blankUrl}" class="{childCls} {baseIconCls} ',
+                    '{baseIconCls}-<tpl if="leaf">leaf<tpl else>parent</tpl> {iconCls}"',
+                    '<tpl if="icon">style="background-image:url({icon})"</tpl>></div>', "</tpl>",
+                    '<tpl if="href">',
+                    '<a href="{href}" target="{hrefTarget}" class="{textCls} {childCls}">{value}</a>',
+                    "<tpl else>", '<span class="{textCls} {childCls}">{value}</span>', "</tpl>"
+                ],
+                treeRenderer: function (value, metaData, record, rowIdx, colIdx, store, view) {
+                    debugger
+                    var parentData, me = this,
+                        cls = record.get("cls"),
+                        renderer = me.origRenderer,
+                        data = record.data,
+                        parent = record.parentNode,
+                        rootVisible = view.rootVisible,
+                        lines = [],
+                        nodeRenderer = view.panel.nodeRenderer,
+                        hideIcon = Ext.value(view.panel.hideNodeIcon, false),
+                        hideElbow = Ext.value(view.panel.hideNodeElbow, false);
+                    if (nodeRenderer) {
+                        value = nodeRenderer.apply(me.origScope, arguments)
+                    }
+                    if (cls) {
+                        metaData.tdCls += " " + cls
+                    }
+                    for (; parent && (rootVisible || 0 < parent.data.depth);) {
+                        parentData = parent.data;
+                        lines[rootVisible ? parentData.depth : parentData.depth - 1] = parentData.isLast ? 0 : 1;
+                        parent = parent.parentNode;
+                    }
+                    return me.getTpl("cellTpl").apply({
+                        record: record,
+                        baseIconCls: me.iconCls,
+                        iconCls: data.iconCls,
+                        icon: data.icon,
+                        checkboxCls: me.checkboxCls,
+                        checked: data.checked,
+                        elbowCls: me.elbowCls,
+                        expanderCls: me.expanderCls,
+                        textCls: me.textCls,
+                        leaf: data.leaf,
+                        expandable: record.isExpandable(),
+                        isLast: data.isLast,
+                        blankUrl: Ext.BLANK_IMAGE_URL,
+                        href: data.href,
+                        hrefTarget: data.hrefTarget,
+                        lines: lines,
+                        metaData: metaData,
+                        hideIcon: hideIcon,
+                        hideElbow: hideElbow,
+                        childCls: me.getChildCls ? me.getChildCls() + " " : "",
+                        value: renderer ? renderer.apply(me.origScope, arguments) : value
+                    })
+                }
+            }
+            )
+
+            /**
+ * 资源表左侧视图的store
+ */
+            Ext.define('JE.sys.table.store.TableStore', {
+                extend: 'Ext.data.TreeStore',
+                defaultRootId: 'ROOT',
+                sorters: [{
+                    property: 'SY_ORDERINDEX',
+                    direction: 'ASC'
+                }],
+                listeners: {
+                    load: function (store) {
+                        //展开ROOT节点下的一级子节点
+                        store.getRootNode().expandChildren();
+                    }
+                },
+                constructor: function (config) {
+                    //设置自身model
+                    // this.model = "com.je.core.entity.extjs.JSONTreeNode_excludes_checked";
+                    //store请求的数据地址
+                    var url = "http://59.110.139.75:8080//je/resourceTable/getTree";
+                    //设置自身的代理
+                    this.proxy = {
+                        type: 'ajax',
+                        actionMethods: {
+                            create: 'POST',
+                            read: 'POST',
+                            update: 'POST',
+                            destroy: 'POST'
+                        },
+                        headers: { "Authorization": "0DNB6AKhBSzLm1RjqUp" },
+                        method: 'POST',
+                        extraParams: {
+                            tableCode: 'JE_CORE_RESOURCETABLE',
+                            excludes: 'checked'
+                        },
+                        url: url,
+                        reader: 'json'
+                    };
+                    console.log(this.proxy)
+                    this.callParent(arguments);
+                }
+            });
+
+
+            Ext.define('JE.sys.table.view.WestView', {
+                extend: 'Ext.tree.Panel',
+                useArrows: true,
+                rootVisible: false,
+                animate: false,
+                frame: false,
+                border: 1,
+                codeSearch: true,
+                selModel: {
+                    allowDeselect: true,
+                    mode: 'SINGLE'
+                },
+                copyTableInfo: null,
+
+                viewConfig: {
+                    plugins: {
+                        ptype: 'treeviewdragdrop'
+                    }
+                },
+                // columns: [
+                //     {
+                //         xtype: 'treecolumn',
+                //         text: 'text',
+                //         flex: 1,
+                //         renderer: function (value, metaData, record, rowIndex, colIndex, store) {
+                //             var iconCls = record.get('iconCls');
+                //             console.log(iconCls);
+                //             return '<span class="' + iconCls + '">' + value + '</span>';
+                //         }
+                //     }
+                // ],
+                initComponent: function () {
+                    var me = this;
+                    //设置自身的store
+                    me.store = Ext.create('JE.sys.table.store.TableStore');
+                    me.callParent(arguments);
+                }
+            });
+
+
+
+
+
+            Ext.create('JE.sys.table.view.WestView', {
+                title: 'Simple Tree',
+                width: 200,
+                height: 150,
+                rootVisible: false,
+                renderTo: Ext.getBody()
+            });
+
+        });
+    </script>
+</body>
+
+</html>

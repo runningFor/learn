@@ -1,0 +1,74 @@
+// 覆盖ext-button原始样式
+.x-btn {
+    border: none;
+    background-image: none;
+    height: 30px;
+    //采用flex布局使得按钮居中
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+//按钮文字颜色
+.x-btn-default-small .x-btn-inner {
+    color: #fff
+}
+
+// 测试数据
+@theme-color-primary: red;
+@theme-color-success: green;
+@theme-color-primary-hover:black;
+@theme-color-success-hover:rgb(28, 2, 2);
+// .color() {
+//     @primary:red;
+//     @success:green;
+// }
+
+// @theme-colors: {
+//     primary: red;
+//     secondary: blue;
+//     success: green;
+// };
+// .get-color(@key) {
+//     @color: extract(@theme-colors, @key);
+// }
+.colors(){
+    primary: red;
+    secondary: blue;
+    success: green;
+}
+
+
+// 传入的类型
+@btn-types: primary, success;
+each(@btn-types,{
+    @dynamic-color:~'theme-color-@{value}';
+    .x-btn-@{value}{
+        // background-color:@main-color;
+        // 按钮悬停
+        // @color: @dynamic-color;
+        &:hover {
+            background-color: lighten(@@dynamic-color, 10%);
+        }
+
+
+        //按钮被激活
+        // &:active {
+        //     background-color: darken(@sizes(@dynamic-color), 10%);
+        // }
+
+        // // 按钮禁用
+        // &:disabled {
+        //     background-color: lighten(@dynamic-color, 20%);
+        // }
+    }
+})
+
+
+
+
+  
+
+
+
+
+

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button type="button" onclick="closeWorker('work')">关闭worker</button>
+    <button type="button" onclick="closeWorker('main')">关闭主线程</button>
+    <script>
+        // 构造Worker函数
+        var worker = new Worker("work.js");
+        // 主线程发送消息
+        worker.postMessage('Hello World');
+        worker.postMessage({ method: 'echo', args: ['Work'] });
+
+        // 主线程监听work线程发送的数据
+        worker.onmessage = function (event) {
+            console.log('主线程接受work线程数据', event.data);
+        }
+
+        // 主线程监听work线程错误
+        worker.addEventListener('error', function (event) {
+            console.log(event)
+        });
+
+        function closeWorker(type){
+            if(type==='work'){
+                worker.postMessage({type})
+            }else{
+                worker.terminate()
+                // 测试关闭后能否发送
+                // worker.postMessage('Hello World1');
+
+            }
+        }
+    </script>
+</body>
+
+</html>

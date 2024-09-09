@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button onclick="btnClick()" type="button">start</button>
+    <script>
+        function btnClick() {
+            let tasks = []
+            for (let i = 0; i < 1000000; i++) {
+                tasks.push(() => {
+                    let dom = document.createElement('div')
+                    dom.innerHTML = 'hello' + i
+                    document.body.appendChild(dom)
+                })
+            }
+            run(tasks)
+        }
+        function run(tasks) {
+            let num = 0;
+            function _run() {
+                requestIdleCallback((idleDeadline) => {
+                    if (idleDeadline.timeRemaining() > 0&&num<tasks.length) {
+                        tasks[num]()
+                        num++
+                    }
+                });
+                _run()
+            }
+            _run()
+        }
+    </script>
+
+</body>
+
+</html>

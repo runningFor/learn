@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
+        integrity="sha256-6EJwvQzVvfYP78JtAMKjkcsugfTSanqe4WGFpUdzo88=" crossorigin="anonymous"></script>
+    <div id="main" style="width: 2000px;height:600px;"></div>
+    <script>
+        // 时间戳转换
+        function getTime(timeStr) {
+            function _formatTime(time) {
+                return ('0' + time).slice(-2)
+            }
+            let date = new Date(timeStr);
+            let year = date.getFullYear();
+            let month = _formatTime(date.getMonth() + 1);
+            let day = _formatTime(date.getDate())
+            let hour = _formatTime(date.getHours());
+            let minutes = _formatTime(date.getMinutes());
+            let second = _formatTime(date.getSeconds());
+            // return {year,month,day,}
+            return year + "-" + month + '-' + day + " " + hour + ":" + minutes + ":" + second
+        }
+
+        /**
+         * @description 通过时间间隔分段
+         * @param num max 最大时间
+         * @param num min 最小时间
+         * @param num interval 间隔时间ms
+         * @return array<array>
+         * */
+        function getDataIntervalArr(max, min, interval) {
+            let val = min, timeArr = [];
+            while (val + interval <= max) {
+                timeArr.push([val, val + interval])
+                val = val + interval
+            }
+            return timeArr
+        }
+        /**
+         * @description 获取需要处理的数据
+         * @param array orginTimeArr 原时间数据源
+         * @param array timeArr 已经分段的时间数据数组
+         * @return array<[
+                1708323600000,
+                1708366800000,
+                1,
+                "1708323600000-1708366800000"
+            ]>
+         * */
+        function getChartsData(orginTimeArr, timeArr) {
+            let chartsData = []
+            for (let i = 0; i < timeArr.length; i++) {
+                let [start, end] = timeArr[i]
+                let num = 0;
+                for (let j = 0; j < orginTimeArr.length; j++) {
+                    if (orginTimeArr[j] >= start && orginTimeArr[j] <= end) {
+                        num++
+                    }
+                }
+                chartsData.push([...timeArr[i], num, getTime(start) + "-" + getTime(end)])
+            }
+            return chartsData
+        }
+
+
+        /**
+        * @description 获取最大，最小值
+        * @param array originData 原数据时间数组
+        * @param num spaceBeforeTime 前留白时间ms
+        * @param num spaceAfterTime 后留白时间ms
+        * @returns {minTime,maxTime}
+        * */
+        function getMaxAndMin(originData, spaceBeforeTime, spaceAfterTime) {
+            let min = Math.min(...originData);
+            let max = Math.max(...originData);
+            let minTime = min - spaceBeforeTime
+            let maxTime = max + spaceAfterTime
+            return { minTime, maxTime }
+        }
+        /**
+         * @description 通过原数据获取时间段数据
+         * @param array originData  原数据
+         * @param string key  键
+         * */
+        function getTimeArr(originData, key) {
+            return originData.map(item => item[key] && Date.parse(item[key]))
+        }
+
+        async function _getData() {
+            let result = await fetch("http://192.168.50.197:8080//lego/lxtsyxdc/load?_dc=1725843991809", {
+                "headers": {
+                    "accept": "*/*",
+                    "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+                    "authorization": "0vWQdrno0TxV1nluUDt",
+                    "cache-control": "no-cache",
+                    "cachekey": "CBSJZKX_SYXDC_LXTSYSDCB",
+                    "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    "platform-agent": "AppleWebKit/537.36 (KHTML, like Gecko)",
+                    "pragma": "no-cache",
+                    "sys_security": "1",
+                    "x-requested-with": "XMLHttpRequest"
+                },
+                "body": "funcCode=CBSJZKX_SYXDC_LXTSYSDCB&funcId=BUp9bj9MmK0ADWDFTa4&columnLazy=true&mark=false&postil=&funcEdit=false&coverJquery=0&tableCode=CBSJZKX_SYXDC_LXTSYSDCB&whereSql=&_isFunc_=true&j_query=%7B%22custom%22%3A%5B%5D%2C%22_custom_types%22%3A%5B%5D%7D&j_order=%5B%5D&orderSql=ORDER%20BY%20LXTSYSDCB_FBSJ%20ASC&page=2&start=30&limit=-1",
+                "method": "POST",
+            });
+            let json = await result.json()
+            return json.rows
+        }
+        (async () => {
+            let jsonData = await _getData()
+
+            let orginTimeArr = getTimeArr(jsonData, 'LXTSYSDCB_FBSJ');
+
+            // 6h,8h,18m,30m,24h
+            let interval = 24 * 60 * 60 * 1000
+            let spaceBeforeTime = 24 * 5 * 60 * 60 * 1000
+            let spaceAfterTime = 24 * 2 * 60 * 60 * 1000
+            // let spaceBeforeTime = 0
+            // let spaceAfterTime = 0
+            // 获取最大，最小值
+            let { minTime, maxTime } = getMaxAndMin(orginTimeArr, spaceBeforeTime, spaceAfterTime)
+
+            // 带有间隔的二维数组
+            let timeArr = getDataIntervalArr(maxTime, minTime, interval)
+            // 获取charts所需数据
+            let chartsData = getChartsData(orginTimeArr, timeArr);
+            console.log(chartsData)
+
+
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main'));
+
+            // const colorList = [
+            //     '#4f81bd',
+            //     '#c0504d',
+            //     '#9bbb59',
+            //     '#604a7b',
+            //     '#948a54',
+            //     '#e46c0b'
+            // ];
+            const data = chartsData.map(function (item, index) {
+                return {
+                    value: item,
+                    itemStyle: {
+                        // color: colorList[index]
+                    }
+                };
+            });
+            option = {
+                title: {
+                    text: 'Profit',
+                    left: 'center'
+                },
+                tooltip: {},
+                xAxis: {
+                    type: 'category',
+                    // boundaryGap: false,
+                    data: chartsData.map(item => item[0]),
+                    axisLabel: {
+                        rotate: 90,
+                        formatter: function (value) {
+                            return getTime(parseInt(value))
+                        }
+                    }
+                },
+                yAxis: {
+                    
+                },
+                series: [
+                    {
+                        type: 'custom',
+                        renderItem: function (params, api) {
+                            var yValue = api.value(2);
+                            var start = api.coord([api.value(0), yValue]);
+                            var size = api.size([api.value(1) - api.value(0), yValue]);
+                            var style = api.style();
+                            console.log({
+                                type: 'rect',
+                                shape: {
+                                    x: start[0],
+                                    y: start[1],
+                                    width: size[0],
+                                    height: size[1]
+                                },
+                                style: style
+                            })
+                            return {
+                                type: 'rect',
+                                shape: {
+                                    x: start[0],
+                                    y: start[1],
+                                    width: size[0],
+                                    height: size[1]
+                                },
+                                style: style
+                            };
+                        },
+                        label: {
+                            show: true,
+                            position: 'top'
+                        },
+                        dimensions: ['开始时间', '结束数据', '数量'],
+                        encode: {
+                            x: [0, 1],
+                            y: 2,
+                            tooltip: [0, 1, 2],
+                            itemName: 3
+                        },
+                        data: data
+                    }
+                ]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+        })()
+
+
+        // 数据源
+        // async function getOptions(){
+
+        // }
+        // getOptions()
+
+
+
+    </script>
+</body>
+
+</html>

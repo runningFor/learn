@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>less</title>
+    <link rel="stylesheet/less" type="text/css" href="style/index.less" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>我是头部</header>
+    </div>
+    <button type="button" onclick="toggleTheme('theme-blue')">切换主题blue</button>
+    <button type="button" onclick="toggleTheme('theme-orange')">切换主题orange</button>
+    <script>
+        function toggleTheme(theme){
+            less.modifyVars({
+                theme
+            })
+        }
+    </script>
+</body>
+
+</html>
+<script>
+    let arr=[1,2];
+    let res=[]
+    for(let i=0;i<4;i++){
+        res=[...res,...arr]
+    }
+    console.log(res)
+</script>

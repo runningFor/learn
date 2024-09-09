@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据上报和分析</title>
+</head>
+
+<body>
+    <button type="button">点击A</button>
+    <button type="button">点击B</button>
+    <script>
+        let queues = [];
+        let btns = document.querySelectorAll('button');
+        btns.forEach(item => {
+            item.onclick = function () {
+                console.log(this)
+                queues.push({ type: 'click',inner:this.innerText })
+                schedule()
+            }
+        })
+
+        function schedule() {
+            requestIdleCallback((idle) => {
+                if (idle.timeRemaining() > 0) {
+                    const task = queues.pop()
+                    console.log(task.type, "当前任务我需要上报了",task.inner)
+                }
+                if(queues.length){
+                    schedule()
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>
